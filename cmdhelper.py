@@ -72,6 +72,7 @@ class CommandRunner:
     options = [
         ("apache", ("start", "stop", "restart", "reload")),
         ("mysql", ("start", "stop", "restart", "reload")),
+        ("samba", ("start", "stop", "restart", "reload")),
         ("samba", ("start", "stop", "restart", "reload"))
     ]
 
