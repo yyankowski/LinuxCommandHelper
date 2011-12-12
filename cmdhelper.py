@@ -20,33 +20,36 @@ class App:
         """
         try:
              # break out of loop if "q" key is pressed
-            while self.x != ord('q'):
+            while self.x != ord("q"):
+
                 curses.noecho()
                 curses.cbreak()
                 self.screen.clear()
                 self.screen.border(0)
-
+                
                 self.screen.addstr(2, 2,
-                                       "Press (0) Apache (1) Mysql (2) Samba (Q). To quit ",
+                                       "%s (Q). To quit " % CommandRunner.printCommands(),
                                        curses.A_STANDOUT)
+
                 try:
                     curses.echo()
-                    self.param = int(self.screen.getstr(5, 2, 60))
-                except ValueError:
-                     #self.x = self.screen.getch()
-                     self.screen.addstr(4, 2, "Invalid value! (Press Enter)", curses.color_pair(3))
-                     #self.screen.clear()
+                    paramTmp = self.screen.getstr(5, 2, 60)
+                    curses.noecho()
+                    if paramTmp == "q": break
+                    self.param = int(paramTmp)
+
+                    #if parameter value received from the input
+                    if self.param > -1:
+                        cmdRunner = CommandRunner(self.param)
+                        cmdRunner.displayOptions(self.screen)
+
+                    curses.noecho()
+                except ValueError, IndexError:
+                     self.screen.addstr(4, 2, "Invalid value! (Press any key to continue)", curses.color_pair(3))
+                     self.screen.getch()
                      continue
-
-                curses.noecho()
-
-                #if parameter value received from the input
-                if self.param > -1:
-                    cmdRunner = CommandRunner(self.param)
-                    cmdRunner.displayOptions(self.screen)
-
-                self.screen.refresh()
                 self.x = self.screen.getch()
+                self.screen.refresh()
         finally:
             self.screen.keypad(0)
             curses.echo()
@@ -78,12 +81,23 @@ class CommandRunner:
 
         self.command_idx = command_idx
 
+    @staticmethod
+    def printCommands():
+        strOut = ""
+        i = 0
+        for tplCommand in CommandRunner.options:
+            strOut += "%d) %s " % (i, tplCommand[0])
+            i += 1
+        return strOut
+
     # displays a list of options available for a given Unix command
     # list of options is set manually by the user of the program
     def displayOptions(self, _screen):
+        
         optionName = CommandRunner.options[self.command_idx][0]
         _screen.addstr(5, 5, "***  %s chosen ***" % optionName, curses.A_BLINK)
         _screen.border(10)
+
 
         tplOptions = CommandRunner.options[self.command_idx][1]
         i = 10
@@ -94,17 +108,23 @@ class CommandRunner:
             j += 1
 
         optionNum = -1
-        _screen.addstr(i - len(tplOptions) - 2, 30, "Select option number:", curses.color_pair(1))
+        _screen.addstr(i - len(tplOptions) - 2, 2, "Select option number:", curses.color_pair(1))
 
-        curses.echo()
+        #curses.echo()
 
         try:
-            optionNum = int(_screen.getstr(i - len(tplOptions) - 2, 55, 60))
+            curses.echo()
+            optionNum = int(_screen.getstr(i - len(tplOptions) - 2, 25, 60))
+            curses.noecho()
         except ValueError:
-            _screen.addstr(4, 2, "Invalid value! (Press Enter)", curses.color_pair(3))
+            raise
         _screen.clear()
+
+        if optionNum > len(tplOptions)-1:
+            raise IndexError("Index out of range of options array! " + str(optionNum))
+
         _screen.addstr(5, 5, "***  %s %s chosen ***" % (optionName, tplOptions[optionNum]), curses.A_BLINK)
-        curses.noecho()
+        #curses.noecho()
 
 
 
